@@ -1,6 +1,7 @@
 #include <stdio.h> //printf, scanf, 파일입출력 등을 위한 헤더파일 삽입
 #include <stdlib.h> //동적할당 해제 위한 헤더파일 삽입
 #include <queue> //stl queue를 사용하기위해 삽입
+#include <string.h> //한글문자열 비교위한 strcmp 함수 사용위해 헤더파일 삽입
 #define MAX_WORD 200 //한 단어 최대길이 200으로 지정
 
 using namespace std; //c++ 코드에서 stl queue만 사용하므로 std::를 각각 지정안하고 using namespace std를 사용 
@@ -121,12 +122,27 @@ Node* pushNode(Node* root, element* word){
 	if(cmpWord(word->eng, root->word->eng) == -1){ //같은단어 존재시
 		printf("같은 단어가 존재합니다!!\n");
 	}
-	else if(!cmpWord(word->eng, root->word->eng)) //word element의 영단어가 root위치의 영단어보다 클시
+	else if(!cmpWord(word->eng, root->word->eng)) //word element의 영단어가 root위치의 영단어보다 작을시
 		root->lnode = pushNode(root->lnode, word); //lnode로 재귀호출
-	else if(cmpWord(word->eng, root->word->eng)) //word element의 영단어가 root위치의 영단어보다 작을시
+	else if(cmpWord(word->eng, root->word->eng)) //word element의 영단어가 root위치의 영단어보다 클시
 		root->rnode = pushNode(root->rnode, word); //rnode로 재귀호출
 
 	return root;
+}
+
+//한글 뜻 순서 bst에 node push 함수
+Node* pushNode_kor(Node* root2, element* word){
+	if(!root2) return makeNode(word, NULL, NULL); //같은단어가 존재하지 않을시
+	
+	if(strcmp(word->kor, root2->word->kor) == 0){ //같은단어 존재시
+		printf("같은 단어가 존재합니다!!\n");
+	}
+	else if(strcmp(word->kor, root2->word->kor)<0) //word element의 단어가 root위치의 한글뜻보다 작을시
+		root2->lnode = pushNode_kor(root2->lnode, word); //lnode로 재귀호출
+	else if(strcmp(word->kor, root2->word->kor)>0) //word element의 단어가 root위치의 한글뜻보다 클시
+		root2->rnode = pushNode_kor(root2->rnode, word); //rnode로 재귀호출
+
+	return root2;
 }
 
 //영단어를 검색하여 한국어 뜻을 출력하는 함수
@@ -162,8 +178,41 @@ void searchEtoK(Node* root){
 	printf("없음\n"); //root로 검색을 했는데 null이 나와 단어가 없을 시 없다는 문구 출력
 }
 
+//한국어를 검색하여 영어 뜻을 출력하는 함수
+void searchKtoE(Node* root2){
+	char key[MAX_WORD];
+	printf("검색할 단어의 한글 뜻 입력: ");
+	scanf(" %s", key); //key 변수에 사용자로부터 검색할 영단어 입력받음
+
+	if(!root2){ //단어장 트리가 비었을때 오류문구 출력
+		printf("단어장이 비어있습니다!!\n");
+		return;
+	}
+
+	printf("검색과정: ");
+	while(root2){ //검색과정 출력하는 반복구문
+		if(strcmp(key, root2->word->kor)==0){ //같은단어 찾았을 때
+			printf("%s", root2->word->kor); //해당단어 출력
+			for(int i=1; i < root2->word->count_meanings; i++) //추가 뜻이 있을때 프린트
+				printf(", %s", root2->word->means[i]); //추가 뜻을 구분위한 , 출력
+			printf(" : %s\n", root2->word->eng); //해당 영어단어 출력
+			return; //함수 종료
+		}
+		else if(strcmp(key, root2->word->kor)>0){ //찾을려는 단어가 root위치의 단어보다 클때
+			printf("%s - ", root2->word->kor); //root위치 단어 출력
+			root2 = root2->rnode; //rnode로 이동
+		}
+		else{ //찾을려는 단어가 root위치의 단어보다 작을때
+			printf("%s - ", root2->word->kor); //root위치 단어 출력
+			root2 = root2->lnode; //lnode로 이동
+		}
+	}
+
+	printf("없음\n"); //root로 검색을 했는데 null이 나와 단어가 없을 시 없다는 문구 출력
+}
+
 //새로운 단어를 tree에 추가하는 함수
-Node* insertWordToTree(Node* root){
+Node* insertWordToTree(Node* root, Node** root2){
 	char ch; //단어 뜻 추가여부 받을 변수
 	element *tmp = make_element(); //element형 tmp변수 동적할당
 
@@ -184,7 +233,8 @@ Node* insertWordToTree(Node* root){
 		else 
 			printf("입력한 문자를 다시 확인해주세요.\n");
 	}
-	root = pushNode(root, tmp);
+	root = pushNode(root, tmp); //영한 트리에 단어 추가
+	(*root2) = pushNode_kor(*root2, tmp); //한영 트리에 단어 추가
 
 	return root;
 }
@@ -259,46 +309,25 @@ void TreeToFile(Node* root, char* filename){
 	fclose(fp); //파일 종료
 }
 
-void print_menu(){ //메뉴 프린트 함수
-	printf("**** 메뉴 ****\n");
-	printf("1. 영->한 검색\n");
-	printf("2. 한->영 검색\n"); //추가 점수 내용
-	printf("3. 단어 추가\n");
-	printf("4. 단어 삭제\n");
-	printf("5. 성능 평가\n"); //점수없는 첼린지
-	printf("6. 종료\n");
-}
+Node* makeKorTree(Node* root){
+	if(!root){
+		printf("영한사전 트리가 비어있습니다!!\n");
+		return NULL;
+	}
+	Node* root2 = NULL;
 
-Node* select_menu(Node* root){ //메뉴 선택 함수
-	int choice;
-	do{
-		print_menu();
-		printf("입력: ");
-		scanf("%d", &choice);
-		
-		switch(choice){
-			case 1: //영-한 검색 함수 호출
-				searchEtoK(root); 
-				break;
-			case 2: //한-영 검색 함수(추가점수)
-				break;
-			case 3:  //단어 추가 함수
-				root = insertWordToTree(root); 
-				break;
-			case 4: //단어 삭제 함수
-				root = deleteWordToTree(root);
-				break;
-			case 5:  //성능 평가(첼린지)
-				break;
-			case 6: //프로그램 종료
-				printf("단어장 프로그램을 종료합니다.\n"); 
-				return root;
-			
-			default: printf("번호를 다시한번 확인해 주세요.\n");
-		}
-	}while(choice!=6);
-
-	return root;
+	queue<Node*> q;
+	q.push(root);
+	while(!q.empty()){
+		root = q.front();
+		q.pop();
+		root2 = pushNode_kor(root2, root->word);
+		if(root->lnode)
+			q.push(root->lnode);
+		if(root->rnode)
+			q.push(root->rnode);
+	}
+	return root2;
 }
 
 //트리 및 element 동적할당 말소 함수
@@ -311,6 +340,64 @@ void eraseTree(Node* root){
 		free(root);
 		root = NULL;
 	}
+}
+
+//element 제외한 트리만 말소하는 함수
+void eraseOnlyTree(Node* root2){
+	if(root2){
+		eraseOnlyTree(root2->lnode);
+		eraseOnlyTree(root2->rnode);
+		free(root2);
+		root2 = NULL;
+	}
+}
+
+void print_menu(){ //메뉴 프린트 함수
+	printf("**** 메뉴 ****\n");
+	printf("1. 영->한 검색\n");
+	printf("2. 한->영 검색\n"); //추가 점수 내용
+	printf("3. 단어 추가\n");
+	printf("4. 단어 삭제\n");
+	printf("5. 성능 평가\n"); //점수없는 첼린지
+	printf("6. 종료\n");
+}
+
+Node* select_menu(Node* root){ //메뉴 선택 함수
+	int choice;
+	Node* root2=makeKorTree(root);
+	do{
+		print_menu();
+		printf("입력: ");
+		scanf("%d", &choice);
+		
+		switch(choice){
+			case 1: //영-한 검색 함수 호출
+				searchEtoK(root); 
+				break;
+			case 2: //한-영 검색 함수(추가점수)
+				searchKtoE(root2);
+				break;
+			case 3:  //단어 추가 함수
+				root = insertWordToTree(root, &root2); 
+				break;
+			case 4: //단어 삭제 함수
+				root = deleteWordToTree(root);
+				eraseOnlyTree(root2);
+				root2 = makeKorTree(root);
+				break;
+			case 5:  //성능 평가(첼린지)
+				break;
+			case 6: //프로그램 종료
+				printf("단어장 프로그램을 종료합니다.\n"); 
+				return root;
+			
+			default: printf("번호를 다시한번 확인해 주세요.\n");
+		}
+	}while(choice!=6);
+	eraseOnlyTree(root2);
+	root2 = NULL;
+
+	return root;
 }
 
 int main(int argc, char* argv[]){
