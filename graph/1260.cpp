@@ -39,7 +39,7 @@ void insert_edge(GraphType* g, int start, int end){
 		return;
 	}
 	g->adj_mat[start][end] = 1;
-	g->adj_mat[start][end] = 1;
+	g->adj_mat[end][start] = 1;
 }
 
 //인접 행렬로 표현된 그래프에 대한 큐를 활용한 너비 우선 탐색
@@ -47,14 +47,15 @@ void bfs_mat(GraphType* g, int v){ //v부터 탐색시작
 	queue <int> q;
 	q.push(v);
 	visited[v] = TRUE;
+	printf("%d", v);
 	while(!q.empty()){
 		v=q.front();
 		q.pop();
-		printf("%d ", v);
 		for(int i=1; i<=(g->n); i++){
 			if((g->adj_mat[v][i] == 1) && visited[i] != TRUE){
 				q.push(i);
 				visited[i] = TRUE;
+				printf(" %d", i);
 			}
 		}
 	}
@@ -62,6 +63,7 @@ void bfs_mat(GraphType* g, int v){ //v부터 탐색시작
 
 //인접 행렬로 표현된 그래프에 대한 스택을 활용한 깊이 우선 탐색
 void dfs_mat(GraphType* g, int v){ //v부터 탐색시작
+	int tmp = v;
 	stack<int> s;
 	s.push(v);
 	while(!s.empty()){
@@ -69,7 +71,10 @@ void dfs_mat(GraphType* g, int v){ //v부터 탐색시작
 		s.pop();
 		if(visited[v] != TRUE){
 			visited[v] = TRUE;
-			printf("%d ", v);
+			if(tmp==v)
+				printf("%d", v);
+			else
+				printf(" %d", v);
 			for(int k=g->n; k>=1; k--){
 				if(visited[k] != TRUE && (g->adj_mat[v][k] == 1))
 					s.push(k);
