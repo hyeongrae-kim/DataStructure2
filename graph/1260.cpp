@@ -6,7 +6,7 @@ using namespace std;
 
 #define TRUE 1
 #define FALSE 0
-#define MAX_VERTICES 1000
+#define MAX_VERTICES 1001
 typedef struct GraphType{
 	int n; //정점의 개수
 	int adj_mat[MAX_VERTICES][MAX_VERTICES];
