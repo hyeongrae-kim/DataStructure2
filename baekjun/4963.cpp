@@ -6,7 +6,7 @@ using namespace std;
 
 #define TRUE 1
 #define FALSE 0
-#define MAX_VERTICES 101
+#define MAX_VERTICES 51
 typedef struct GraphType{
 	int n; //정점의 개수
 	int adj_mat[MAX_VERTICES][MAX_VERTICES];
@@ -64,6 +64,16 @@ int main(void){
 	GraphType *g;
 	g = (GraphType*)malloc(sizeof(GraphType));
 	init(g);
+
+	int map_width = 0, map_height = 0;
+
+	scanf("%d %d", map_width, map_height);
+
+	
+
+
+
+
 
 	int edge=0, vertex=0, start=0, end=0, count=0;
 	scanf("%d", &vertex);

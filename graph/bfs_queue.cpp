@@ -38,7 +38,7 @@ void insert_edge(GraphType* g, int start, int end){
 		return;
 	}
 	g->adj_mat[start][end] = 1;
-	g->adj_mat[start][end] = 1;
+	g->adj_mat[end][start] = 1;
 }
 
 //인접 행렬로 표현된 그래프에 대한 큐를 활용한 너비 우선 탐색
