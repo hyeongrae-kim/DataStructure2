@@ -1,99 +1,81 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <queue>
-#include <stack>
+#define MAX_SIZE 51
+
 using namespace std;
+int island[MAX_SIZE][MAX_SIZE];
+int width;
+int height;
 
-#define TRUE 1
-#define FALSE 0
-#define MAX_VERTICES 51
-typedef struct GraphType{
-	int n; //정점의 개수
-	int adj_mat[MAX_VERTICES][MAX_VERTICES];
-} GraphType;
+typedef struct node{
+	int x;
+	int y;
+} node;
 
-int attacked[MAX_VERTICES]; //virus 감염됨 표시
-
-//그래프 초기화
-void init(GraphType *g){
-	int r, c;
-	g->n = 0;
-	for(r = 0; r<MAX_VERTICES; r++)
-		for(c = 0; c<MAX_VERTICES; c++)
-			g->adj_mat[r][c] = 0;
-}
-
-//정점 삽입 연산
-void insert_vertex(GraphType* g, int v){
-	if(((g->n)+1) > MAX_VERTICES){
-		fprintf(stderr, "그래프: 정점의 개수 초과");
-		return;
-	}
-	g->n++;
-}
-
-//간선 삽입 연산
-void insert_edge(GraphType* g, int start, int end){
-	if(start>g->n || end>g->n){
-		fprintf(stderr, "그래프: 정점 번호 오류");
-		return;
-	}
-	g->adj_mat[start][end] = 1;
-	g->adj_mat[end][start] = 1;
-}
-
-//인접 행렬로 표현된 그래프에 대한 큐를 활용한 너비 우선 탐색
-//바이러스 감염된 컴퓨터 표시
-void bfs_mat(GraphType* g, int v){ //v부터 탐색시작
-	queue <int> q;
-	q.push(v);
-	attacked[v] = TRUE;
-	while(!q.empty()){
-		v=q.front();
-		q.pop();
-		for(int i=1; i<=(g->n); i++){
-			if((g->adj_mat[v][i] == 1) && attacked[i] != TRUE){
-				q.push(i);
-				attacked[i] = TRUE;
+int find_island(){
+	int result=0;
+	queue <node*> q;
+	node *tmp = NULL;
+	node *tmp2 = NULL;
+	for(int i=1; i<=height; i++){
+		for(int k=1; k<=width; k++){
+			if(island[i][k] == 1){
+				//graph탐색시작-> 전부 2로바꿔줌
+				tmp = (node*)malloc(sizeof(node));
+				tmp->x = i;
+				tmp->y = k;
+				q.push(tmp);
+				while(!q.empty()){
+					tmp = q.front();
+					q.pop();
+					island[tmp->x][tmp->y] = 2;
+					for(int n=(tmp->x)-1; n<=(tmp->x)+1; n++){
+						for(int m=(tmp->y)-1; m<=(tmp->y)+1; m++){
+							if(island[n][m] == 1){
+								tmp2 = (node*)malloc(sizeof(node));
+								tmp2->x = n;
+								tmp2->y = m;
+								q.push(tmp2);
+							}
+						}
+					}
+					free(tmp);
+				}
+				result++;
 			}
 		}
 	}
+	return result;
 }
 
-int main(void){
-	GraphType *g;
-	g = (GraphType*)malloc(sizeof(GraphType));
-	init(g);
+int main(int argc, char* argv[]){
+	int count=1, result=0;
+	while(1){
+		//지도 너비 높이 받기
+		scanf("%d %d", &width, &height);
+		if(width==0 && height==0)
+			break;
+		
+		//섬 정보받기
+		char tmp[width*2];
+		for(int i=1; i<=height; i++){
+			getchar();
+			scanf("%[^\n]s", tmp);
+			for(int k=0; k<width*2-1; k=k+2)
+				island[i][count++] = int(tmp[k]-48);
+			count = 1;
+			tmp[0] = '\0';
+		}
+			
+		result = find_island();
+		printf("%d\n", result);
 
-	int map_width = 0, map_height = 0;
-
-	scanf("%d %d", map_width, map_height);
-
-	
-
-
-
-
-
-	int edge=0, vertex=0, start=0, end=0, count=0;
-	scanf("%d", &vertex);
-	scanf("%d", &edge);
-
-	for(int i=1; i<=vertex; i++)
-		insert_vertex(g, i);
-	
-	for(int i=0; i<edge; i++){
-		scanf("%d %d", &start, &end);
-		insert_edge(g, start, end);
+		//island 2차원 배열 초기화
+		for(int i=0; i<=width; i++)
+			for(int k=0; k<=height; k++)
+				island[i][k] = 0;
 	}
 
-	bfs_mat(g, 1);
-	for(int i=1; i<=MAX_VERTICES; i++){
-		if(attacked[i] == TRUE)
-			count++;
-	}
-	printf("%d", count-1);
-	free(g);
-
-	return 0;
 }
