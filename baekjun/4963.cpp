@@ -14,6 +14,7 @@ typedef struct node{
 	int y;
 } node;
 
+//동적할당 배열로바꿔서 해보기
 int find_island(){
 	int result=0;
 	queue <node*> q;
