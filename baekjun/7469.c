@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #define MAX_SIZE 100000
 
@@ -42,12 +43,13 @@ int main(void){
 	scanf("%d %d", &arrlen, &count);
 
 	int arr[arrlen];
-	char tmp[arrlen*2];
+	int reset[arrlen];
 	getchar();
-	scanf("%[^\n]s", tmp);
-
-	for(int i=0; i<arrlen*2-1; i=i+2)
-		arr[arrcount++] = tmp[i]-48;
+	for(int i=0; i<arrlen; i++){
+		scanf("%d", &arr[i]);
+	}
+	memcpy(reset, arr, sizeof(arr));
+	
 
 	arrcount = 0;
 	for(int i=0; i<count; i++){
@@ -55,12 +57,12 @@ int main(void){
 		scanf("%d %d %d", &start, &end, &pick);	
 		merge_sort(arr, start-1, end-1);
 		printf("%d\n", arr[start+pick-2]);
-		for(int k=0; k<arrlen*2-1; k=k+2)
-			arr[arrcount++] = tmp[k]-48;
+		for(int k=0; k<arrlen; k++)
+			arr[arrcount++] = reset[k];
 		for(int k=0; k<arrlen; k++)
 			sorted[k] = 0;
 		arrcount = 0;
 	}
 	
-	return 0;	
+	return 0;
 }
